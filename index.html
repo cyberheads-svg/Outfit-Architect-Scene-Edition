@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html lang="ja" style="background:#08060c">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outfit Architect: Scene Edition</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap');
+  :root{
+    --bg:#08060c;--panel:#100d18;--border:#1e1a2a;--border2:#2e2840;
+    --text:#d8d0e8;--muted:#6a5e80;--dim:#221e30;
+    --night:#c084fc;--boudoir:#fda4af;--beach:#67e8f9;--formal:#fcd34d;--idol:#f9a8d4;
+    --mono:'DM Mono',monospace;--serif:'DM Serif Display',serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:#08060c}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:48px 20px 60px}
+  header{text-align:center;margin-bottom:36px}
+  .eyebrow{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  h1{font-family:var(--serif);font-style:italic;font-size:clamp(26px,5vw,42px);color:#fff;font-weight:400;line-height:1.1;margin-bottom:4px}
+  h1 span{color:var(--night)}
+  .counter{font-size:10px;color:var(--dim);margin-top:8px;letter-spacing:.2em}
+  .sit-selector{display:flex;gap:6px;margin-bottom:24px;width:100%;max-width:560px;flex-wrap:wrap}
+  .sit-btn{flex:1;min-width:80px;padding:10px 4px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .2s;text-align:center}
+  .sit-btn:hover{border-color:var(--border2);color:var(--text)}
+  .sit-btn.active-night{border-color:var(--night);color:var(--night);background:#1a0f28}
+  .sit-btn.active-boudoir{border-color:var(--boudoir);color:var(--boudoir);background:#1a0f12}
+  .sit-btn.active-beach{border-color:var(--beach);color:var(--beach);background:#0a1820}
+  .sit-btn.active-formal{border-color:var(--formal);color:var(--formal);background:#1a1808}
+  .sit-btn.active-idol{border-color:var(--idol);color:var(--idol);background:#1a0f18}
+  .card{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--border);padding:32px;margin-bottom:20px}
+  .empty-state{text-align:center;padding:40px 0;color:var(--dim)}
+  .empty-icon{font-size:40px;margin-bottom:12px;opacity:.5}
+  .empty-text{font-size:12px;line-height:1.7;letter-spacing:.05em}
+  .fields{display:flex;flex-direction:column;gap:16px;margin-bottom:28px}
+  .field{display:grid;grid-template-columns:100px 1fr;gap:12px;align-items:start}
+  .field-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding-top:4px;line-height:1.4}
+  .field-value{font-family:var(--serif);font-style:italic;font-size:16px;line-height:1.4}
+  .rare-badge{font-family:var(--mono);font-size:8px;letter-spacing:.15em;text-transform:uppercase;padding:1px 6px;border:1px solid currentColor;opacity:.6;margin-left:8px;vertical-align:middle;font-style:normal}
+  .divider{border:none;border-top:1px solid var(--border);margin-bottom:20px}
+  .prompt-label{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .prompt-text{font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:14px;word-break:break-word}
+  .copy-btn{background:transparent;border:1px solid var(--border2);color:var(--muted);padding:7px 18px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;font-family:var(--mono);transition:all .15s}
+  .copy-btn:hover{border-color:var(--night);color:var(--night)}
+  .copy-btn.copied{border-color:#86efac;color:#86efac}
+  .generate-btn{width:100%;max-width:560px;background:transparent;border:1px solid #3a2a5a;color:var(--night);padding:16px;font-size:11px;letter-spacing:.35em;text-transform:uppercase;cursor:pointer;font-family:var(--mono);transition:all .2s;margin-bottom:12px}
+  .generate-btn:hover{background:#120a20;border-color:var(--night)}
+  .save-btn{width:100%;max-width:560px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:12px;font-size:10px;letter-spacing:.25em;text-transform:uppercase;cursor:pointer;font-family:var(--mono);transition:all .2s;margin-bottom:40px}
+  .save-btn:hover{border-color:var(--border2);color:var(--text)}
+  .saved-section{width:100%;max-width:560px}
+  .saved-title{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+  .saved-item{background:var(--panel);border:1px solid var(--border);padding:12px 16px;margin-bottom:8px;font-size:11px;color:var(--muted);line-height:1.7;cursor:pointer;transition:border-color .15s}
+  .saved-item:hover{border-color:var(--border2);color:var(--text)}
+  footer{margin-top:20px;font-size:10px;color:var(--dim);letter-spacing:.15em;text-align:center}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .animate-in{animation:fadeIn .3s ease forwards}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Image AI · Prompt Generator</div>
+  <h1>Outfit <span>Architect</span></h1>
+  <div class="eyebrow" style="margin-top:4px">Scene Edition v1.0</div>
+  <div class="counter" id="counter">— generated</div>
+</header>
+
+<div class="sit-selector">
+  <button class="sit-btn active-night" data-sit="night" onclick="setSit('night')">🌙 Night Out</button>
+  <button class="sit-btn" data-sit="boudoir" onclick="setSit('boudoir')">🕯 Boudoir</button>
+  <button class="sit-btn" data-sit="beach" onclick="setSit('beach')">🌊 Beach</button>
+  <button class="sit-btn" data-sit="formal" onclick="setSit('formal')">✨ Formal</button>
+  <button class="sit-btn" data-sit="idol" onclick="setSit('idol')">⭐ Idol</button>
+</div>
+
+<div class="card">
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">🖤</div>
+    <div class="empty-text">シチュエーションを選んでボタンを押してください<br>画像生成AIに使えるプロンプトが生成されます</div>
+  </div>
+  <div id="result" style="display:none"></div>
+</div>
+
+<button class="generate-btn" onclick="generate()">GENERATE OUTFIT</button>
+<button class="save-btn" onclick="savePrompt()" id="saveBtn" style="display:none">SAVE THIS PROMPT</button>
+
+<div class="saved-section" id="savedSection" style="display:none">
+  <div class="saved-title">Saved Prompts</div>
+  <div id="savedList"></div>
+</div>
+
+<footer>Scene Edition · situational outfit generator · GitHub Pages ready</footer>
+
+<script>
+let currentSit = "night";
+let generated = 0;
+let currentPrompt = "";
+
+function setSit(s) {
+  currentSit = s;
+  document.querySelectorAll(".sit-btn").forEach(b => {
+    b.className = "sit-btn";
+    if (b.dataset.sit === s) b.classList.add("active-" + s);
+  });
+}
+
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const pickN = (arr, n) => [...arr].sort(() => 0.5 - Math.random()).slice(0, Math.min(n, arr.length));
+
+// ── NIGHT OUT ──────────────────────────────────────────────
+const NIGHT = {
+  style: ["barely-there mini dress","bodycon club dress","cut-out bodycon","wrap mini dress","ruched mini dress","slip dress with thigh slit","strapless bandeau dress","one-shoulder mini","asymmetric hem mini","sequined bodycon","velvet mini dress","latex-look bodycon","mesh overlay mini","plunge neckline mini","backless mini dress","micro mini with corset detail","lace-up front dress","strappy cross-back mini","deep V bodycon","off-shoulder ruched mini","halter neck mini dress","side-cut bodycon","mirrored sequin mini","metallic bodycon","crystal-embellished mini","sheer overlay bodycon","satin slip mini","faux leather mini dress","bralette and micro skirt set","cropped corset and micro skirt"],
+  top: ["strappy bralette top","plunge crop top","corset bustier","mesh crop top","sequined halter","bandeau top","one-shoulder crop","deep V neck top","sheer embellished top","lace bralette","rhinestone crop top","metallic tube top","backless halter","ruched crop top","vinyl crop top","crystal-strap top","barely-there crop","tie-front top","cut-out crop","strapless corset top"],
+  bottom: ["micro mini skirt","leather micro skirt","sequined mini skirt","ruched bodycon skirt","PVC mini skirt","slit pencil skirt","asymmetric mini","metallic mini skirt","lace mini skirt","mesh mini skirt","vinyl mini skirt","crystal-trim mini","low-rise micro skirt","hip-hugging mini","pleated micro skirt","bodycon mini skirt","zip-front mini","wrap micro skirt","cut-out mini","sheer overlay mini skirt"],
+  fabric: ["stretch velvet","metallic lycra","PVC","sequined mesh","sheer chiffon","lace","rhinestone-embellished","satin","faux leather","crystal mesh","vinyl","ruched jersey","liquid satin","holographic fabric","mirror sequin"],
+  color: ["all black","midnight black and gold","deep crimson and black","electric blue and silver","hot pink and black","emerald and gold","deep purple and silver","ruby red","nude and gold","white and silver","cobalt and chrome","black and rose gold","deep teal and gold","burnt orange and black","champagne and black"],
+  acc: ["strappy chain anklet","rhinestone choker","hoop earrings oversized","crystal drop earrings","body chain","wrist cuffs","layered gold chains","statement cocktail ring","micro bag on chain","clutch in metallic","thigh chain","ear cuff","face gems","hair gems","crystal hair clip","fishnet stockings","sheer tights","thigh-high stockings","lace-top stockings","opera gloves in black"],
+  shoes: ["strappy stiletto heels","platform ankle boots","thigh-high heeled boots","pointed-toe pumps","crystal-strap sandals","metallic platform heels","block heel mules","clear lucite heels","strappy heeled sandals","knee-high boots","lace-up heeled boots","crystal-embellished pumps","metallic ankle boots","platform mary janes","pointed-toe kitten heels"],
+  outer: ["faux fur stole","leather blazer","oversized blazer","vinyl trench","sheer kimono wrap","embellished jacket","cropped moto jacket","sequined bomber","velvet blazer","feather-trim wrap"]
+};
+
+// ── BOUDOIR ────────────────────────────────────────────────
+const BOUDOIR = {
+  style: ["silk chemise","lace babydoll","satin corset and panty set","sheer robe over lingerie","bustier and garter set","teddy bodysuit","strappy bralette and brief set","lace bodysuit","satin slip dress","embroidered corset set","vintage-style full slip","mesh bodysuit","plunge lace bra and panty","strapless lace bustier set","ribbon-tie lingerie set","cami and tap pant set","ruffle-trim babydoll","deep V satin chemise","long sheer robe","velvet bralette set"],
+  top: ["lace balconette bra","satin plunge bra","embroidered demi bra","strapless bustier","underwire lace bra","sheer mesh bralette","strappy triangle bra","velvet bralette","ruffled satin bra","bandeau with lace trim","deep plunge balconette","longline lace bralette","wired demi cup bra","scallop-edge lace bra","ribbon-front bra"],
+  bottom: ["high-waist lace brief","satin garter belt and stocking","lace thong","ruffle-back brief","satin tap pants","cheeky lace panty","garter skirt","high-cut lace panty","suspender belt","boyshort in silk","mesh brief","lace hipster","embroidered brief","satin G-string","ruffled panty"],
+  fabric: ["silk charmeuse","stretch lace","French lace","chiffon","velvet","embroidered tulle","satin","sheer mesh","crinkle chiffon","Guipure lace","ribbon satin","burnout velvet","brocade silk","stretch lace","microfiber satin"],
+  color: ["ivory and blush","black and champagne","deep red and black","dusty rose and cream","white and gold","nude and lace","lavender and silver","sage and ivory","midnight black","blush monochrome","wine red and ivory","pearl white","champagne and bronze","soft peach and cream","black and rose gold"],
+  acc: ["pearl choker","pearl drop earrings","satin hair ribbon","lace gloves","pearl anklet","crystal hair pin","satin sleep mask","silk stocking with garter","velvet choker","diamond tennis bracelet","delicate ring stack","satin scrunchie","pearl-pin updo","floral hair crown","small satin bow hair clip"],
+  shoes: ["feather-trim mule heels","satin kitten heels","clear platform heels","strappy flat sandals","velvet mules","lace-up heeled sandals","marabou trim slides","satin pumps","boudoir slides","crystal kitten heels"]
+};
+
+// ── BEACH / POOL ───────────────────────────────────────────
+const BEACH = {
+  style: ["string bikini","triangle bikini","bandeau bikini","high-waist bikini","Brazilian cut bikini","one-piece swimsuit","cut-out one-piece","plunge one-piece","monokini","halter bikini","sporty two-piece","thong bikini","micro bikini","wrap bikini top and sarong","criss-cross bikini","strapless bandeau bikini","side-tie bikini","underwire bikini","off-shoulder one-piece","V-plunge maillot"],
+  top: ["triangle string top","bandeau top with ties","halter neck bikini top","underwire plunge top","criss-cross strappy top","sporty crop top","ruched bikini top","one-shoulder top","scoop neck top","plunge V top","strapless tube top","wrap tie-front top","longline bikini top","crochet triangle top","fringe-trim top"],
+  bottom: ["string bikini bottom","high-cut leg brief","Brazilian bottom","thong bottom","side-tie bottom","high-waist brief","ruched back bottom","cheeky bikini bottom","wrap skirt sarong","micro bottom","wide-side bottom","hipster swim brief","low-rise bottom","boyshort swim bottom","skirted bikini bottom"],
+  fabric: ["ribbed lycra","printed nylon","crochet cotton","seersucker","metallic spandex","textured lycra","bandage material","cut-out stretch","shiny wet-look lycra","woven cotton","matte jersey","mesh overlay","terry cloth","embroidered cotton","lace-effect stretch"],
+  color: ["tropical turquoise and white","hot coral and gold","electric yellow and black","neon pink and white","ocean blue and sand","white and tan","animal print brown","leopard print","zebra print","snake print neutral","vivid orange and blue","palm print green","sunset ombre orange","watermelon red and green","tie-dye rainbow"],
+  acc: ["oversized straw hat","cat-eye sunglasses","shell anklet","gold body chain","shell earrings","woven tote bag","beach wrap pareo","flip flops with embellishment","knot headband","anklet stack","waterproof watch","hair salt spray waves","braided hair wrap","lei flower necklace","oversized round sunglasses"],
+  shoes: ["strappy flat sandals","espadrille wedges","platform flip flops","braided leather sandals","slide sandals","rope-sole sandals","woven sandals","thong sandals","embellished flip flops","beach platform sandals"],
+  outer: ["sheer beach cover-up","crochet cover-up dress","linen shirt unbuttoned","mesh cover-up","wrap skirt sarong","kaftan","terry cloth shorts","kimono cover-up","denim cut-offs","linen wide pants"]
+};
+
+// ── FORMAL ────────────────────────────────────────────────
+const FORMAL = {
+  style: ["floor-length gown","thigh-slit evening dress","backless maxi gown","plunge neckline gown","off-shoulder ball gown","mermaid silhouette gown","column dress","wrap evening gown","one-shoulder formal","strapless sweetheart gown","asymmetric formal dress","cape detail gown","cutout maxi dress","draped Grecian gown","structured cocktail dress","sequined full-length gown","velvet evening gown","satin bias-cut gown","embellished midi dress","feather-hem gown"],
+  top: ["embellished corset bodice","structured strapless bodice","draped satin bodice","lace overlay bodice","beaded halter top","plunge satin top","fitted sequined top","off-shoulder ruffle top","velvet bustier","bow-front formal top","one-shoulder sequined","crystal-strap evening top","sheer embroidered top","sculptural structured top","pleated satin top"],
+  bottom: ["floor-length satin skirt","embellished tulle skirt","mermaid fishtail skirt","pleated maxi skirt","draped formal skirt","sequined column skirt","velvet full skirt","beaded skirt","structured ball skirt","satin slit skirt","chiffon layered skirt","crepe column skirt","organza puff skirt","trained skirt","metallic pleated skirt"],
+  fabric: ["duchess satin","silk charmeuse","beaded chiffon","velvet","organza","structured crepe","tulle","brocade","lace overlay","embroidered silk","sequined mesh","metallic brocade","dupioni silk","taffeta","jacquard"],
+  color: ["midnight black and diamonds","ivory and gold","deep navy and silver","emerald and gold","deep burgundy and bronze","champagne and blush","classic red","blush and rose gold","royal purple and silver","forest green and gold","cobalt and crystal","black and white","deep teal and pearl","antique gold","platinum and white"],
+  acc: ["diamond drop earrings","pearl strand necklace","crystal clutch","long evening gloves","hair updo with jewels","tiara","crystal bracelet","sapphire drop earrings","evening bag in satin","statement necklace","stacked bangles in gold","fur stole","silk evening wrap","hair comb with gems","wrist corsage"],
+  shoes: ["crystal-strap stilettos","satin pointed pumps","embellished platform heels","strappy evening sandals","metallic heeled mules","velvet kitten heels","jeweled sandals","ankle-strap heels","pointed-toe satin pumps","crystal-encrusted heels"],
+  outer: ["faux fur evening coat","embellished blazer","velvet wrap coat","silk evening cape","beaded shawl","structured evening jacket","dramatic feather stole","brocade coat","satin opera coat","jeweled bolero"]
+};
+
+// ── IDOL ──────────────────────────────────────────────────
+const IDOL = {
+  style: ["idol stage costume","idol casual street","idol school uniform remix","idol pastel coord","idol sporty set","idol sequin performance","idol fairy kei","idol sweet lolita adjacent","idol concert look","idol off-duty casual","idol ribbon coord","idol sailor uniform remix","idol gingham set","idol pom-pom coord","idol cheer set","idol ruffle stage","idol tulle coord","idol metallic stage","idol bow coord","idol retro pop stage"],
+  top: ["cropped sailor collar top","puff sleeve crop top","ruffle-trim bralette","off-shoulder with bow","ribbon-tie corset top","striped cropped top with lace trim","sequined crop with puff sleeves","gingham crop top","heart-print crop","embroidered crop blouse","lace-up corset top","angel-sleeve crop","tied ribbon crop","peter pan collar crop","sheer star-print top","pastel knit crop","frilled strapless crop","cami with bow straps","tube top with lace overlay","glitter crop top"],
+  bottom: ["pleated micro skirt","gingham micro skirt","ruffled tiered mini","tulle puff skirt","sequined mini skirt","plaid mini skirt","bow-trim mini","heart-print mini","ribbon-laced mini","lace-edge micro skirt","metallic pleated mini","pastel A-line mini","circle skirt with petticoat","ruffle-hem mini","star-print mini","cheer skirt","pleated tennis skirt","denim micro with patches","embroidered mini","sparkle tutu mini"],
+  fabric: ["stretch cotton with lace","organza","tulle","glitter spandex","gingham cotton","satin with ribbon","sequined stretch","embroidered cotton","sheer chiffon","pastel jersey","metallic knit","star-print cotton","velvet ribbon trim","eyelet cotton","foil-print stretch"],
+  color: ["pastel pink and white","sky blue and cream","lemon yellow and white","mint and pink","lavender and silver","peach and gold","strawberry red and white","bubblegum pink and black","white and holographic","baby blue and gold","coral and cream","soft lilac and white","rose and champagne","rainbow pastel mix","pink and silver glitter"],
+  acc: ["oversized ribbon hair bow","twin pigtail ties","heart hair clips","star hair pins","pearl choker with bow","lace gloves fingerless","thigh-high socks with lace","knee-high socks","ruffle ankle socks","pom-pom bag charm","mini backpack","heart-shape bag","beret with ribbon","cat ear headband","stacked friendship bracelets","charm anklet","crystal hair clips","flower corsage","tiara","idol light stick prop"],
+  shoes: ["platform mary janes","ribbon-tie ballet flats","chunky platform sneakers","white lace-up boots","pastel ankle boots","heart-buckle heels","glitter sneakers","platform loafers with bow","kitten heel mules with bow","crystal-strap sandals"]
+};
+
+const SIT_DATA = { night: NIGHT, boudoir: BOUDOIR, beach: BEACH, formal: FORMAL, idol: IDOL };
+const SIT_ACCENT = { night:"#c084fc", boudoir:"#fda4af", beach:"#67e8f9", formal:"#fcd34d", idol:"#f9a8d4" };
+const SIT_LABEL = { night:"Night Out", boudoir:"Boudoir", beach:"Beach / Pool", formal:"Formal", idol:"Idol" };
+const FIELD_COLORS = ["#c084fc","#fda4af","#86efac","#fcd34d","#67e8f9","#a5f3fc","#d9f99d","#fed7aa","#f9a8d4"];
+
+function generate() {
+  generated++;
+  document.getElementById("counter").textContent = `${generated} generated`;
+
+  const d = SIT_DATA[currentSit];
+  const accent = SIT_ACCENT[currentSit];
+  const label = SIT_LABEL[currentSit];
+
+  const fabric = pick(d.fabric);
+  const color = pick(d.color);
+  const acc = pickN(d.acc, Math.random() < 0.5 ? 2 : 3);
+  const shoe = pick(d.shoes);
+
+  let fields = [];
+  const parts = [`${label} outfit`];
+
+  // Situation-specific outfit structure
+  if (currentSit === "night") {
+    if (Math.random() < 0.5) {
+      // Full dress
+      const style = pick(d.style);
+      parts.push(style);
+      fields.push({ label: "ドレス", value: style, color: FIELD_COLORS[0] });
+    } else {
+      // Top + bottom
+      const top = pick(d.top);
+      const bottom = pick(d.bottom);
+      parts.push(top, bottom);
+      fields.push({ label: "トップス", value: top, color: FIELD_COLORS[0] });
+      fields.push({ label: "ボトムス", value: bottom, color: FIELD_COLORS[1] });
+    }
+    const outer = Math.random() < 0.3 ? pick(d.outer) : null;
+    if (outer) { parts.push(outer); fields.push({ label: "アウター", value: outer, color: accent, rare: true }); }
+
+  } else if (currentSit === "boudoir") {
+    if (Math.random() < 0.5) {
+      const style = pick(d.style);
+      parts.push(style);
+      fields.push({ label: "スタイル", value: style, color: FIELD_COLORS[0] });
+    } else {
+      const top = pick(d.top);
+      const bottom = pick(d.bottom);
+      parts.push(top, bottom);
+      fields.push({ label: "トップス", value: top, color: FIELD_COLORS[0] });
+      fields.push({ label: "ボトムス", value: bottom, color: FIELD_COLORS[1] });
+    }
+
+  } else if (currentSit === "beach") {
+    if (Math.random() < 0.5) {
+      const style = pick(d.style);
+      parts.push(style);
+      fields.push({ label: "水着", value: style, color: FIELD_COLORS[0] });
+    } else {
+      const top = pick(d.top);
+      const bottom = pick(d.bottom);
+      parts.push(top, bottom);
+      fields.push({ label: "トップス", value: top, color: FIELD_COLORS[0] });
+      fields.push({ label: "ボトムス", value: bottom, color: FIELD_COLORS[1] });
+    }
+    const outer = Math.random() < 0.35 ? pick(d.outer) : null;
+    if (outer) { parts.push(outer); fields.push({ label: "カバーアップ", value: outer, color: accent, rare: true }); }
+
+  } else if (currentSit === "formal") {
+    if (Math.random() < 0.6) {
+      const style = pick(d.style);
+      parts.push(style);
+      fields.push({ label: "ドレス", value: style, color: FIELD_COLORS[0] });
+    } else {
+      const top = pick(d.top);
+      const bottom = pick(d.bottom);
+      parts.push(top, bottom);
+      fields.push({ label: "トップス", value: top, color: FIELD_COLORS[0] });
+      fields.push({ label: "スカート", value: bottom, color: FIELD_COLORS[1] });
+    }
+    const outer = Math.random() < 0.3 ? pick(d.outer) : null;
+    if (outer) { parts.push(outer); fields.push({ label: "アウター", value: outer, color: accent, rare: true }); }
+
+  } else if (currentSit === "idol") {
+    const top = pick(d.top);
+    const bottom = pick(d.bottom);
+    parts.push(top, bottom);
+    fields.push({ label: "トップス", value: top, color: FIELD_COLORS[0] });
+    fields.push({ label: "スカート", value: bottom, color: FIELD_COLORS[1] });
+  }
+
+  parts.push(`${fabric} fabric`, `color palette: ${color}`, acc.join(", "), shoe);
+  parts.push("full body shot, fashion photography, detailed clothing, high quality");
+  currentPrompt = parts.join(", ");
+
+  fields.push(
+    { label: "素材", value: fabric, color: FIELD_COLORS[2] },
+    { label: "カラー", value: color, color: accent },
+    { label: "アクセサリー", value: acc.join(", "), color: FIELD_COLORS[4] },
+    { label: "シューズ", value: shoe, color: FIELD_COLORS[5] }
+  );
+
+  const fieldsHTML = fields.map(f => `
+    <div class="field">
+      <div class="field-label">${f.label}</div>
+      <div class="field-value" style="color:${f.color}">
+        ${f.value}${f.rare ? `<span class="rare-badge" style="color:${f.color}">rare</span>` : ""}
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("result").innerHTML = `
+    <div class="fields animate-in">${fieldsHTML}</div>
+    <hr class="divider">
+    <div class="prompt-label">画像AIにコピー</div>
+    <div class="prompt-text">${currentPrompt}</div>
+    <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+  `;
+
+  document.getElementById("emptyState").style.display = "none";
+  document.getElementById("result").style.display = "block";
+  document.getElementById("saveBtn").style.display = "block";
+}
+
+function copyPrompt() {
+  if (!currentPrompt) return;
+  navigator.clipboard.writeText(currentPrompt).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "Copied ✓"; btn.classList.add("copied");
+    setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 2000);
+  });
+}
+
+function savePrompt() {
+  if (!currentPrompt) return;
+  let saved = JSON.parse(localStorage.getItem("scene_arch_v1") || "[]");
+  if (saved.includes(currentPrompt)) return;
+  saved.unshift(currentPrompt);
+  localStorage.setItem("scene_arch_v1", JSON.stringify(saved.slice(0, 30)));
+  renderSaved();
+}
+
+function renderSaved() {
+  const saved = JSON.parse(localStorage.getItem("scene_arch_v1") || "[]");
+  const section = document.getElementById("savedSection");
+  const list = document.getElementById("savedList");
+  if (saved.length === 0) { section.style.display = "none"; return; }
+  section.style.display = "block";
+  list.innerHTML = saved.map((p, i) => `<div class="saved-item" data-index="${i}">${p}</div>`).join("");
+  document.querySelectorAll(".saved-item").forEach(el => {
+    el.onclick = () => navigator.clipboard.writeText(saved[el.dataset.index]);
+  });
+}
+
+renderSaved();
+</script>
+
+</body>
+</html>
